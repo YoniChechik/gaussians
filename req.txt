@@ -4,3 +4,5 @@ opencv-python-headless
 tqdm
 pandas
 av
+loguru
+parametric
