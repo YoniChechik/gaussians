@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true, //if false: debug pip installed code as well
+            // "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${fileWorkspaceFolder}" // add project dir to pythonpath
+            }
+        }
+    ]
+}

@@ -1,0 +1,59 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# pytest
+.pytest_cache/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# PyCharm
+.idea/
+
+# vscode
+*.code-workspace
+
+# imgaes
+*.bmp
+*.png
+*.jpg
+*.jpeg
+*.tif
+
+# log files
+*.log
+
+# train stuff
+runs/
+*.pt
+*.pth
+.torch/
+
+#ruff
+.ruff_cache/
+
+# profiling
+*.prof
+
+# 3d
+*.obj
+*.ply
+*.las
+*.mtl
+*.glb
+
+override_params.yaml
+*.zip
+*.npy
+*.npz
+*.pkl
+*.geojson
+*.asc

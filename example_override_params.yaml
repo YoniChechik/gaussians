@@ -1,0 +1,8 @@
+# ========================
+# !!!EXAMPLE!!!
+# to run with debug params please copy this example and rename it to: "override_params.yaml"
+# ========================
+
+is_multiprocess: true
+save_dir_path: null
+is_debug: false

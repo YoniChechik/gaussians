@@ -1,0 +1,34 @@
+x-default: &default
+  # expose all ports to the outside world as if we are the host machine
+  network_mode: host
+  # don't disconnect gpu after several hours/days with NVML error
+  # From: https://bbs.archlinux.org/viewtopic.php?id=266915
+  privileged: true  
+  # GPU
+  deploy:
+    resources:
+      reservations:
+        devices:
+        - driver: nvidia
+          device_ids: ['0']
+          capabilities: [gpu]
+  # shared memory
+  shm_size: '12gb'
+
+x-build: &build
+  # main dir that build needs to be aware of
+  context: ..
+  # Path to dockerfile relative to context
+  dockerfile: docker/Dockerfile
+
+services:
+  dev:
+    <<: *default
+    build:
+      <<: *build
+    volumes:
+      - C:\Users\Yoni\Desktop\ns_data\gaussians:/root/gaussians/ 
+      - C:\Users\Yoni\Desktop\ns_data\nerfstudio_cache:/home/user/.cache/ 
+      - C:\Users\Yoni\Desktop\ns_data\data:/root/data 
+      - C:\Users\Yoni\.ssh:/root/.ssh 
+
