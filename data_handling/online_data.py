@@ -37,9 +37,13 @@ class OnlineDataIterator:
 
         curr_color_ind = None
         curr_depth_intrinsics_matrix = None
+        curr_color_intrinsics_matrix = None
         if self._parsed_data.color_ind_to_arpose_ind[self._tracked_color_ind] == self._curr_arpose_ind:
             curr_color_ind = self._tracked_color_ind
             curr_depth_intrinsics_matrix = self._parsed_data.depth_intrinsics_matrices_in_color_timetable[
+                self._tracked_color_ind
+            ]
+            curr_color_intrinsics_matrix = self._parsed_data.color_intrinsics_matrices_in_color_timetable[
                 self._tracked_color_ind
             ]
             self._tracked_color_ind += 1
@@ -53,6 +57,7 @@ class OnlineDataIterator:
             self._parsed_data.timestamps[self._curr_arpose_ind],
             self._parsed_data.camera_to_world_transformations[self._curr_arpose_ind],
             curr_depth_intrinsics_matrix,
+            curr_color_intrinsics_matrix,
             curr_depth_ind,
             curr_color_ind,
             self._curr_arpose_ind,

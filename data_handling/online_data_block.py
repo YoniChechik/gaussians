@@ -13,6 +13,7 @@ class OnlineDataBlock:
         timestamp: float,
         camera_to_world_transformation: np.ndarray,
         depth_intrinsics_matrix: np.ndarray | None,
+        color_intrinsics_matrix: np.ndarray | None,
         depth_index: int | None,
         color_index: int | None,
         arpose_index: int,
@@ -20,6 +21,7 @@ class OnlineDataBlock:
         self.timestamp = timestamp
         self.camera_to_world_transformation = camera_to_world_transformation
         self.depth_intrinsics_matrix = depth_intrinsics_matrix
+        self.color_intrinsics_matrix = color_intrinsics_matrix
         self.depth_index = depth_index
         self.color_index = color_index
         self.arpose_index = arpose_index

@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import numpy as np
 
 from params import params
@@ -13,11 +15,11 @@ def base_depth_meshgrid():
     return ind_j, ind_i
 
 
+@dataclass
 class PointCloud:
-    def __init__(self, xyz: np.ndarray, valid_depth_mask: np.ndarray, camera_pos: np.ndarray) -> None:
-        self.all_xyz = xyz
-        self.valid_depth_mask = valid_depth_mask
-        self.camera_pos = camera_pos
+    all_xyz: np.ndarray
+    valid_depth_mask: np.ndarray
+    camera_pos: np.ndarray
 
 
 class _PointCloudGenerator:

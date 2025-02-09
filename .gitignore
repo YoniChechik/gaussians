@@ -57,3 +57,8 @@ override_params.yaml
 *.pkl
 *.geojson
 *.asc
+
+data/
+shortcuts/
+tmp/
+outputs/

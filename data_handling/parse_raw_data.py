@@ -17,6 +17,7 @@ class ParsedData:
     depth_ind_to_arpose_ind: list[int]
     camera_to_world_transformations: np.ndarray
     depth_intrinsics_matrices_in_color_timetable: np.ndarray
+    color_intrinsics_matrices_in_color_timetable: np.ndarray
 
 
 def parse_raw_data() -> ParsedData:
@@ -30,7 +31,9 @@ def parse_raw_data() -> ParsedData:
     # === color
     color_pd = read_binary_ply_to_dataframe(params.input_dir_path / "Frames.ply")
     color_ind_to_arpose_ind = _dest_timestamps_to_src_timestamps(color_pd, arpose_pd)
-    depth_intrinsics_matrices_in_color_timetable = _parse_depth_intrinsics(color_pd, params.color_wh, params.depth_wh)
+    depth_intrinsics_matrices_in_color_timetable, color_intrinsics_matrices_in_color_timetable = _parse_intrinsics(
+        color_pd, params.color_wh, params.depth_wh
+    )
 
     camera_to_world_transformations = camera_to_world_transformations_with_sw_fixes.copy()
     return ParsedData(
@@ -39,6 +42,7 @@ def parse_raw_data() -> ParsedData:
         depth_ind_to_arpose_ind,
         camera_to_world_transformations,
         depth_intrinsics_matrices_in_color_timetable,
+        color_intrinsics_matrices_in_color_timetable,
     ), camera_to_world_transformations_with_sw_fixes
 
 
@@ -71,7 +75,7 @@ def _parse_transformation_data(pd: pd.DataFrame, is_arkit_coo_to_opencv_coo=True
     return camera_to_world_projections
 
 
-def _parse_depth_intrinsics(color_data: pd.DataFrame, color_wh, depth_wh):
+def _parse_intrinsics(color_data: pd.DataFrame, color_wh, depth_wh):
     # Create color intrinsic matrices directly from the DataFrame
     zero_arr = np.zeros(len(color_data))
     color_intrinsic_matrices = np.array(
@@ -86,7 +90,7 @@ def _parse_depth_intrinsics(color_data: pd.DataFrame, color_wh, depth_wh):
     depth_intrinsics_matrices = color_intrinsics_to_depth_intrinsics(
         color_intrinsic_matrices, color_to_depth_scale_factor
     )
-    return depth_intrinsics_matrices
+    return depth_intrinsics_matrices, color_intrinsic_matrices  # Return both matrices
 
 
 def _dest_timestamps_to_src_timestamps(dest_pd, src_pd):
