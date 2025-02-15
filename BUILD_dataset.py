@@ -3,6 +3,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
+import open3d as o3d
 from loguru import logger
 from tqdm import tqdm
 
@@ -35,9 +36,9 @@ def set_intrinsics(transform_data: dict, intrinsics_matrix: np.ndarray) -> None:
     transform_data["cy"] = float(intrinsics_matrix[1, 2])
 
 
-def set_image_size(transform_data: dict, color_frame: np.ndarray) -> None:
+def get_image_size_wh(color_frame: np.ndarray) -> tuple[int, int]:
     """Set the width and height in the transform data based on the color frame size."""
-    transform_data["h"], transform_data["w"] = color_frame.shape[:2]
+    return color_frame.shape[:2][::-1]
 
 
 def process_frames(online_data_iter: OnlineDataIterator, output_dir: Path, transform_data: dict) -> None:
@@ -46,14 +47,20 @@ def process_frames(online_data_iter: OnlineDataIterator, output_dir: Path, trans
     images_dir.mkdir(parents=True, exist_ok=True)
 
     intrinsics_set = False
-    size_set = False
+    wh = None
 
-    logger.info("Starting iteration over every second frame for 100 frames...")
+    # Initialize lists to collect all points and colors
+    all_points = []
+    all_colors = []
+
+    logger.info("Starting iterations...")
     for frame_ind, data_block in enumerate(tqdm(online_data_iter)):
-        if frame_ind >= 200:  # Process up to 100 frames with step=2
-            break
-        if frame_ind % 2 != 0:
+        if frame_ind < 10000:
             continue
+        if frame_ind >= 12000:
+            break
+        # if frame_ind % 5 != 0:
+        #     continue
 
         global_raw_transformation = data_block.camera_to_world_transformation.copy()
 
@@ -64,9 +71,9 @@ def process_frames(online_data_iter: OnlineDataIterator, output_dir: Path, trans
         if data_block.color_index is not None:
             bgr_image = data_block.bgr_image
 
-            if not size_set:
-                set_image_size(transform_data, bgr_image)
-                size_set = True
+            if wh is None:
+                wh = get_image_size_wh(bgr_image)
+                transform_data["w"], transform_data["h"] = wh
 
             image_path = images_dir / f"frame_{frame_ind:04d}.png"
             cv2.imwrite(image_path, bgr_image)
@@ -77,12 +84,40 @@ def process_frames(online_data_iter: OnlineDataIterator, output_dir: Path, trans
             }
             transform_data["frames"].append(frame_entry)
 
+        if data_block.depth_index is not None:
+            curr_mesh = data_block.mesh
+            uv_normed = curr_mesh.normed_vertex_texture_uvs.copy()
+            uv_normed[:, 1] = 1 - uv_normed[:, 1]
+            vertex_texture_uvs = uv_normed * wh
+
+            uvs = np.round(vertex_texture_uvs).astype(int)
+            uvs[:, 0] = np.clip(uvs[:, 0], 0, wh[0] - 1)
+            uvs[:, 1] = np.clip(uvs[:, 1], 0, wh[1] - 1)
+
+            colors = bgr_image[uvs[:, 1], uvs[:, 0]] / 255.0
+            colors = colors[:, [2, 1, 0]]  # Convert BGR to RGB
+
+            # Append to collection
+            all_points.append(curr_mesh.vertices)
+            all_colors.append(colors)
+
     if not intrinsics_set:
         logger.error("No intrinsics data found in any frame.")
         raise RuntimeError("Failed to set intrinsics.")
-    if not size_set:
+    if wh is None:
         logger.error("No color frame data found.")
         raise RuntimeError("Failed to set image size.")
+
+    # Combine all points and colors
+    all_points = np.concatenate(all_points, axis=0)
+    all_colors = np.concatenate(all_colors, axis=0)
+
+    # Create and save the combined point cloud
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(all_points)
+    pcd.colors = o3d.utility.Vector3dVector(all_colors)
+    o3d.io.write_point_cloud(output_dir / "sparse_pc.ply", pcd)
+    logger.info("Saved combined point cloud to combined_pointcloud.ply")
 
 
 def save_transform_data(transform_data: dict, output_path: Path) -> None:
@@ -100,11 +135,8 @@ def main():
     parsed_data, _ = parse_raw_data()
     online_data_iter = OnlineDataIterator(parsed_data)
 
-    try:
-        process_frames(online_data_iter, output_dir, transform_data)
-        save_transform_data(transform_data, output_dir / "transforms.json")
-    except RuntimeError as e:
-        logger.error(f"Processing failed: {e}")
+    process_frames(online_data_iter, output_dir, transform_data)
+    save_transform_data(transform_data, output_dir / "transforms.json")
 
 
 if __name__ == "__main__":

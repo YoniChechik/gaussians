@@ -6,3 +6,4 @@ pandas
 av
 loguru
 parametric
+open3d

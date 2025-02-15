@@ -53,7 +53,7 @@ def _save_obj_file(mesh: Mesh, output_dir, file_stem):
     # Precompute the lines for the OBJ file
     lines = [f"mtllib {file_stem}.mtl\n"]
     lines += [f"v {vert[0]:.3f} {vert[1]:.3f} {vert[2]:.3f}\n" for vert in mesh.vertices]
-    lines += [f"vt {uv[0]:.6f} {uv[1]:.6f}\n" for uv in mesh.vertex_texture_uvs]
+    lines += [f"vt {uv[0]:.6f} {uv[1]:.6f}\n" for uv in mesh.normed_vertex_texture_uvs]
     lines += [f"f {face[0]}/{face[0]} {face[1]}/{face[1]} {face[2]}/{face[2]}\n" for face in mesh.faces + 1]
 
     # Write all lines to the file at once
